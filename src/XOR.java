@@ -6,9 +6,11 @@ public class XOR {
 
         NeuralNetwork neuralNetwork = new NeuralNetwork();
 
+        neuralNetwork.processing(1, 0, 1);
+        neuralNetwork.error(1);
+
 //        neuralNetwork.processing(0, 0, 0);
 //        neuralNetwork.processing(0, 1, 1);
-        neuralNetwork.processing(1, 0, 1);
 //        neuralNetwork.processing(1, 1, 0);
 
     }

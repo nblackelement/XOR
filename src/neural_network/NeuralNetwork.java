@@ -8,6 +8,8 @@ public class NeuralNetwork {
 
     private double[][] weight = {{0.45, 0.78, -0.12, 0.13}, {1.5, -2.3}, {1}}; // connection between neurons
 
+    private double mse = 0; // era sum
+
     private Layer inputLayer;
     private Layer hiddenLayer;
     private Layer outputLayer;
@@ -26,7 +28,7 @@ public class NeuralNetwork {
     }
 
 
-    public void processing(double a, double b, double c) {
+    public double processing(double a, double b, double c) {
 
         List<Double> outValues; // layer output values
         List<Double> inValues = new ArrayList<>();  // initial input values
@@ -37,7 +39,23 @@ public class NeuralNetwork {
         outValues = hiddenLayer.start(outValues, inputLayer.layerSize());
         double result = outputLayer.start(outValues, hiddenLayer.layerSize()).get(0);
 
-        System.out.println(result);
+        // MSE - Mean Squared Error
+        mse += Math.pow(result - c, 2);
+
+        return result;
+    }
+
+
+    /**
+     * Calculating error on era
+     * @param n num of era iteration
+     */
+    public void error(int n) {
+
+        double error = (mse / n) * 100;
+        setMse(0);
+
+        System.out.printf("%.1f%c", error, '%');
     }
 
 
@@ -56,6 +74,14 @@ public class NeuralNetwork {
 
     public double[][] getWeight() {
         return weight;
+    }
+
+    public double getMse() {
+        return mse;
+    }
+
+    public void setMse(double mse) {
+        this.mse = mse;
     }
 
 }
