@@ -1,6 +1,5 @@
 package neural_network;
 
-import javax.management.BadAttributeValueExpException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -9,11 +8,10 @@ class Layer {
 
     private List<Neuron> neuronList = new ArrayList<>();
 
-
-    Layer (int nAmount) {
+    Layer (int n) {
 
         // Neurons creating
-        for (int i = 0; i < nAmount; i++) {
+        for (int i = 0; i < n; i++) {
 
             Neuron neuron = new Neuron();
             neuronList.add(neuron);
@@ -27,75 +25,99 @@ class Layer {
      */
     void init(double[] weight) {
 
-        int wAmount = weight.length / layerSize();    // amount of out connections in neuron
+        int connectNum = weight.length / layerSize();    // amount of out connections in neuron
 
         for (int i = 0; i < layerSize(); i++) {
 
             List<Double> weightList = new ArrayList<>();
+            List<Double> deltaList = new ArrayList<>();
 
-            // Formation weights for neuron
-            for (int j = 0; j < wAmount; j++)
-                weightList.add(weight[i * wAmount + j]);
+            // Formation weights & delta for neuron
+            for (int j = 0; j < connectNum; j++) {
 
-            neuronList.get(i).setWeightList(weightList);
-        }
-    }
-
-
-    /**
-     * Activation all layer neurons
-     *
-     * @param inValues list of input values
-     * @param previousLayerSize for calc inAmount
-     * @param isInputLayer for correct handle initial values
-     * @return list of all neurons output values
-     */
-    List<Double> start(List<Double> inValues, int previousLayerSize, boolean isInputLayer) {
-
-        int inAmount = inValues.size() / previousLayerSize;   // amount of input connections in neuron
-        List<Double> outValues = new ArrayList<>();
-
-        // layer calculation
-        for (int i = 0; i < layerSize(); i++) {
-
-            Neuron neuron = neuronList.get(i);
-            List<Double> inputList = new ArrayList<>();
-
-            for (int j = 0; j < inValues.size(); j += inAmount)
-              inputList.add(inValues.get(i + j));
-
-            if (isInputLayer) {
-                try {
-                    neuron.activation(inputList, true);
-                } catch (BadAttributeValueExpException e) {
-                    e.printStackTrace();
-                }
-            } else {
-                neuron.activation(inputList);
+                weightList.add(weight[i * connectNum + j]);
+                deltaList.add(0.0);
             }
 
-            List<Double> tmp = neuron.getOutputList();
-            outValues.addAll(tmp);
+            getNeuronList().get(i).setWeightList(weightList);
+            getNeuronList().get(i).setWeighDelta(deltaList);
         }
 
-        return outValues;
-    }
-
-    // Overload function for convenience
-    List<Double> start(List<Double> inValue, int previousLayerSize) {
-
-        boolean isInputLayer = false;
-        return start(inValue, previousLayerSize, isInputLayer);
     }
 
 
+    // Activation all layer neurons
+    List<Double> start(List<Double> layerInput, int previousLayerSize) {
 
-    int layerSize() {
-        return neuronList.size();
+        int inputNum = layerInput.size() / previousLayerSize;   // amount of input connections in neuron
+        List<Double> nextLayerInput = new ArrayList<>();
+
+        for (int i = 0; i < layerSize(); i++) {
+
+            Neuron neuron = getNeuronList().get(i);
+            List<Double> inputList = new ArrayList<>();
+
+            for (int j = 0; j < layerInput.size(); j += inputNum)
+                inputList.add(layerInput.get(i + j));
+
+            neuron.activation(inputList);
+
+            // form next layer input values
+            List<Double> list = jump(neuron);
+            nextLayerInput.addAll(list);
+        }
+
+
+        return nextLayerInput;
     }
+
+
+
+    // jump through connection
+    List<Double> jump(Neuron neuron) {
+
+        List<Double> weightList = neuron.getWeightList();
+        double output = neuron.getOutput();
+
+        // jump all neuron out-connection
+        List<Double> nextInput = new ArrayList<>();
+
+        for (Double weight : weightList)
+            nextInput.add(weight * output);
+
+
+        return nextInput;
+    }
+
+
+    // Function of Back Propagation Method
+    void weightUpdate(Neuron neuron, double e, double a, List<Double> deltaList) {
+
+        for (int i = 0; i < neuron.getWeightList().size(); i++) {
+
+            double grad = gradient(neuron.getOutput(), deltaList.get(i));
+            double newWeightDelta = e * grad + a * neuron.getWeighDelta().get(i);
+            double newWeight = neuron.getWeightList().get(i) + newWeightDelta;
+
+            neuron.getWeightList().set(i, newWeight);
+            neuron.getWeighDelta().set(i, newWeightDelta);
+        }
+
+    }
+
+
+    private double gradient(double output, double delta) {
+        return output * delta;
+    }
+
+
 
     List<Neuron> getNeuronList() {
         return neuronList;
+    }
+
+    int layerSize() {
+        return getNeuronList().size();
     }
 
 }

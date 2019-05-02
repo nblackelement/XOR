@@ -1,49 +1,24 @@
 package neural_network;
 
-import javax.management.BadAttributeValueExpException;
-import java.util.ArrayList;
 import java.util.List;
 
 
 class Neuron {
 
     private List<Double> weightList;
-    private List<Double> outputList;
+    private List<Double> weighDelta;
+    private double output;
 
 
-    /**
-     * Start work neuron
-     * @param inputList list of neuron input values
-     */
+    // Start work neuron
     void activation(List<Double> inputList) {
 
-        // calculation
-        Double inValue = sum(inputList);
-        Double outValue = sigmoid(inValue);
-        outputList = new ArrayList<>();
+        Double input = sum(inputList);
+        Double value = sigmoid(input);
 
-        for (Double weight: weightList)
-            outputList.add(outValue * weight);
+        setOutput(value);
     }
 
-    /**
-     * Overload function for inputLayer
-     * @throws BadAttributeValueExpException if isInputLayer: false
-     */
-    void activation(List<Double> inputList, boolean isInputLayer) throws BadAttributeValueExpException {
-
-        if (isInputLayer) {
-
-            double outValue = inputList.get(0);
-            outputList = new ArrayList<>();
-
-            for (Double weight: weightList)
-                outputList.add(outValue * weight);
-
-        } else {
-            throw new BadAttributeValueExpException(isInputLayer);
-        }
-    }
 
 
     private Double sigmoid(double x) {
@@ -63,12 +38,28 @@ class Neuron {
 
 
 
+    List<Double> getWeightList() {
+        return weightList;
+    }
+
+    List<Double> getWeighDelta() {
+        return weighDelta;
+    }
+
+    double getOutput() {
+        return output;
+    }
+
     void setWeightList(List<Double> weightList) {
         this.weightList = weightList;
     }
 
-    List<Double> getOutputList() {
-        return outputList;
+    void setWeighDelta(List<Double> weighDelta) {
+        this.weighDelta = weighDelta;
+    }
+
+    void setOutput(double output) {
+        this.output = output;
     }
 
 }
